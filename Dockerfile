@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim AS build
+FROM debian:trixie-slim AS build
 COPY grib2.patch /grib2.patch
 RUN apt-get update && apt-get install -y \
     wget \
@@ -11,14 +11,17 @@ RUN apt-get update && apt-get install -y \
  && wget -nv https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz -O - | tar zxv \
  && CC=gcc FC=gfortran make -C grib2 \
  && mkdir wgrib \
- && wget -nv https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib/wgrib.tar -O - | tar xvC wgrib \
+ && wget -nv https://web.archive.org/web/20250706123034/https://ftp.cpc.ncep.noaa.gov/wd51we/wgrib/wgrib.tar -O - | tar xvC wgrib \
  && make -C wgrib
  
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 COPY --from=build /gribw/ggrib/ggrib /grib2/wgrib2/wgrib2 /wgrib/wgrib /usr/local/bin/
 RUN apt-get update && apt-get install -y \
     python3-grib \
     python3-xarray \
+    python3-eccodes \
+    python3-requests \
+    python3-aiohttp \
     python3-boto3 \
     python3-paho-mqtt \
     libeccodes-tools \
@@ -26,5 +29,4 @@ RUN apt-get update && apt-get install -y \
     libgfortran5 \
     libgomp1 \
  && rm -rf /var/lib/apt/lists/*
- 
 
